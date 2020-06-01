@@ -138,7 +138,7 @@ healthcheck(callback) {
       * responseData parameter.
       */
       this.emitOffline();
-      log.error("Service ServiceNowAdapter down, instance : ", this.id );
+      log.debug("Service ServiceNowAdapter down, instance : ", this.id );
       callback( result, error )
    }
  });
