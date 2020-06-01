@@ -124,8 +124,6 @@ healthcheck(callback) {
       */
       this.emitOffline();
       log.error("Service ServiceNowAdapter down, instance : ", this.id );
-      callback( result, error )
-
    } else {
      /**
       * Write this block.
@@ -137,10 +135,14 @@ healthcheck(callback) {
       * parameter as an argument for the callback function's
       * responseData parameter.
       */
-      this.emitOffline();
+      this.emitOnline();
       log.debug("Service ServiceNowAdapter down, instance : ", this.id );
-      callback( result, error )
    }
+
+   if (callback){   
+        callback( getchangerecords, error ); 
+   }
+
  });
 }
 
@@ -197,8 +199,36 @@ healthcheck(callback) {
      * Note how the object was instantiated in the constructor().
      * get() takes a callback function.
      */
-    this.connector.get(callback);
+   this.connector.get( (result,error) => {
+    if (error){
+        callback (result,error);
+    }
+    else {       
+        getchangerecords = {
+            result : [ ]
+        }
+        let parsedresult = JSON.parse(result);
 
+        if ( parsedresult.hasOwnProperty('body') )
+        {
+            parsedrecords = parsedresult.body.result;
+
+            parsedrecords.forEach( (element) => {
+                getrecord = {};
+                getrecord ["change_ticket_number"] = element.number;
+                getrecord ["active"] = element.active;
+                getrecord ["priority"] = element.priority;
+                getrecord ["description"] = element.description;
+                getrecord ["work_start"] = element.work_start;
+                getrecord ["work_end"] = element.work_end;
+                getrecord ["change_ticket_key"] = element.sys_id;
+                getchangerecords.result.push(getrecord);
+            });
+        }
+        });
+
+        callback( getchangerecords, error );
+     }
   }
 
   /**
@@ -217,7 +247,32 @@ healthcheck(callback) {
      * Note how the object was instantiated in the constructor().
      * post() takes a callback function.
      */
-     this.connector.post(callback);
+     
+     this.connector.post( (result,error) => {
+    if (error){
+        callback (result,error);
+    }
+    else {       
+        postchangerecords = {
+            result : [ ]
+        }
+        let parsedresult = JSON.parse(result);
+
+        if ( parsedresult.hasOwnProperty('body') )
+        {
+            parsedrecord = parsedresult.body.result;
+            postchangerecords.result = { 
+                "change_ticket_number" : parsedrecord.number,
+                "active" : parsedrecord.active,
+                "priority" : parsedrecord.priority,
+                "description" : parsedrecord.description,
+                "work_start" : parsedrecord.work_start,
+                "work_end" : parsedrecord.work_end,
+                "change_ticket_key" : parsedrecord.sys_id
+            }
+        }
+        callback( getchangerecords, error );
+     }
   }
 }
 
