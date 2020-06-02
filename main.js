@@ -88,6 +88,7 @@ class ServiceNowAdapter extends EventEmitter {
   connect() {
     // As a best practice, Itential recommends isolating the health check action
     // in its own method.
+    log.error( '============== Connect ==============' );
     this.healthcheck();
   }
 
@@ -138,11 +139,9 @@ healthcheck(callback) {
       this.emitOnline();
       log.debug("Service ServiceNowAdapter down, instance : ", this.id );
    }
-
    if (callback){   
         callback( getchangerecords, error ); 
    }
-
  });
 }
 
@@ -199,21 +198,20 @@ healthcheck(callback) {
      * Note how the object was instantiated in the constructor().
      * get() takes a callback function.
      */
-   this.connector.get( (result,error) => {
-    if (error){
-        callback (result,error);
-    }
-    else {       
-        getchangerecords = {
-            result : [ ]
+    this.connector.get ( (result,error) =>{
+        if (error){
+            callback (result,error);
         }
-        let parsedresult = JSON.parse(result);
+        else {
+            getchangerecords = {
+                result : [ ]
+            }
+            let parsedresult = JSON.parse(result);
+            if ( parsedresult.hasOwnProperty('body') )
+            {
+                parsedrecords = parsedresult.body.result;
 
-        if ( parsedresult.hasOwnProperty('body') )
-        {
-            parsedrecords = parsedresult.body.result;
-
-            parsedrecords.forEach( (element) => {
+                            parsedrecords.forEach( (element) => {
                 getrecord = {};
                 getrecord ["change_ticket_number"] = element.number;
                 getrecord ["active"] = element.active;
@@ -223,13 +221,11 @@ healthcheck(callback) {
                 getrecord ["work_end"] = element.work_end;
                 getrecord ["change_ticket_key"] = element.sys_id;
                 getchangerecords.result.push(getrecord);
-            });
-        }
-        });
-
-        callback( getchangerecords, error );
-     }
-  }
+                });
+            }
+        }       
+    } )
+}
 
   /**
    * @memberof ServiceNowAdapter
@@ -247,32 +243,31 @@ healthcheck(callback) {
      * Note how the object was instantiated in the constructor().
      * post() takes a callback function.
      */
-     
-     this.connector.post( (result,error) => {
-    if (error){
-        callback (result,error);
-    }
-    else {       
-        postchangerecords = {
-            result : [ ]
+     this.connector.post( (result, error) => {
+        if (error){
+            callback (result,error);
         }
-        let parsedresult = JSON.parse(result);
-
-        if ( parsedresult.hasOwnProperty('body') )
-        {
-            parsedrecord = parsedresult.body.result;
-            postchangerecords.result = { 
-                "change_ticket_number" : parsedrecord.number,
-                "active" : parsedrecord.active,
-                "priority" : parsedrecord.priority,
-                "description" : parsedrecord.description,
-                "work_start" : parsedrecord.work_start,
-                "work_end" : parsedrecord.work_end,
-                "change_ticket_key" : parsedrecord.sys_id
+        else {       
+            postchangerecords = {
+                result : [ ]
             }
-        }
-        callback( getchangerecords, error );
-     }
+            let parsedresult = JSON.parse(result);
+            if ( parsedresult.hasOwnProperty('body') )
+            {
+                parsedrecord = parsedresult.body.result;
+                postchangerecords.result = { 
+                    "change_ticket_number" : parsedrecord.number,
+                    "active" : parsedrecord.active,
+                    "priority" : parsedrecord.priority,
+                    "description" : parsedrecord.description,
+                    "work_start" : parsedrecord.work_start,
+                    "work_end" : parsedrecord.work_end,
+                    "change_ticket_key" : parsedrecord.sys_id
+                }
+            }
+            callback( getchangerecords, error );
+        } 
+     });
   }
 }
 
