@@ -88,7 +88,7 @@ class ServiceNowAdapter extends EventEmitter {
   connect() {
     // As a best practice, Itential recommends isolating the health check action
     // in its own method.
-    log.error( '============== Connect ==============' );
+    log.info( '============== Connect ==============' );
     this.healthcheck();
   }
 
@@ -124,7 +124,7 @@ healthcheck(callback) {
       * for the callback's errorMessage parameter.
       */
       this.emitOffline();
-      log.error("Service ServiceNowAdapter down, instance : ", this.id );
+      log.error( '============== Connect/failed ==============', this.id );
    } else {
      /**
       * Write this block.
@@ -137,10 +137,10 @@ healthcheck(callback) {
       * responseData parameter.
       */
       this.emitOnline();
-      log.debug("Service ServiceNowAdapter down, instance : ", this.id );
+      log.info( '============== Connect/passed ==============', this.id );
    }
    if (callback){   
-        callback( getchangerecords, error ); 
+//        callback( getchangerecords, error ); 
    }
  });
 }
@@ -198,18 +198,18 @@ healthcheck(callback) {
      * Note how the object was instantiated in the constructor().
      * get() takes a callback function.
      */
+    log.info( '============== Get Record ==============', this.id );     
     this.connector.get ( (result,error) =>{
-        if (error){
-            callback (result,error);
-        }
-        else {
-            getchangerecords = {
-                result : [ ]
-            }
-            let parsedresult = JSON.parse(result);
-            if ( parsedresult.hasOwnProperty('body') )
+        if (error == null ) {
+            // getchangerecords = {
+            //      result : [ ]
+            // }
+            //parsedresult = JSON.parse(result);
+            log.info( '============== Get Record / parsedresult ==============', result.hasOwnProperty('body') );     
+
+            if ( result.hasOwnProperty('body') )
             {
-                parsedrecords = parsedresult.body.result;
+                parsedrecords = result.body.result;
 
                             parsedrecords.forEach( (element) => {
                 getrecord = {};
@@ -223,7 +223,10 @@ healthcheck(callback) {
                 getchangerecords.result.push(getrecord);
                 });
             }
-        }       
+            log.info( '============== this.connector.get ==============', getchangerecords, error );         
+        }
+
+        callback (result,error);       
     } )
 }
 
