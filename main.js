@@ -88,7 +88,7 @@ class ServiceNowAdapter extends EventEmitter {
   connect() {
     // As a best practice, Itential recommends isolating the health check action
     // in its own method.
-    log.info( '============== Connect ==============' );
+    console.log( '============== Connect ==============' );
     this.healthcheck();
   }
 
@@ -103,7 +103,7 @@ class ServiceNowAdapter extends EventEmitter {
  *   that handles the response.
  */
 healthcheck(callback) {
- this.getRecord((result, error) => {
+ this.postRecord((result, error) => {
    /**
     * For this lab, complete the if else conditional
     * statements that check if an error exists
@@ -124,7 +124,7 @@ healthcheck(callback) {
       * for the callback's errorMessage parameter.
       */
       this.emitOffline();
-      log.error( '============== Connect/failed ==============', this.id );
+      console.log( '============== Connect/failed ==============', this.id );
    } else {
      /**
       * Write this block.
@@ -137,7 +137,7 @@ healthcheck(callback) {
       * responseData parameter.
       */
       this.emitOnline();
-      log.info( '============== Connect/passed ==============', this.id );
+      console.log( '============== Connect/passed ==============', this.id );
    }
    if (callback){   
 //        callback( getchangerecords, error ); 
@@ -154,7 +154,7 @@ healthcheck(callback) {
    */
   emitOffline() {
     this.emitStatus('OFFLINE');
-    log.warn('ServiceNow: Instance is unavailable.');
+    console.log('ServiceNow: Instance is unavailable.');
   }
 
   /**
@@ -166,7 +166,7 @@ healthcheck(callback) {
    */
   emitOnline() {
     this.emitStatus('ONLINE');
-    log.info('ServiceNow: Instance is available.');
+    console.log('ServiceNow: Instance is available.');
   }
 
   /**
@@ -198,35 +198,27 @@ healthcheck(callback) {
      * Note how the object was instantiated in the constructor().
      * get() takes a callback function.
      */
-    log.info( '============== Get Record ==============', this.id );     
     this.connector.get ( (result,error) =>{
-        if (error == null ) {
-            // getchangerecords = {
-            //      result : [ ]
-            // }
-            //parsedresult = JSON.parse(result);
-            log.info( '============== Get Record / parsedresult ==============', result.hasOwnProperty('body') );     
-
-            if ( result.hasOwnProperty('body') )
-            {
-                parsedrecords = result.body.result;
-
-                            parsedrecords.forEach( (element) => {
-                getrecord = {};
-                getrecord ["change_ticket_number"] = element.number;
-                getrecord ["active"] = element.active;
-                getrecord ["priority"] = element.priority;
-                getrecord ["description"] = element.description;
-                getrecord ["work_start"] = element.work_start;
-                getrecord ["work_end"] = element.work_end;
-                getrecord ["change_ticket_key"] = element.sys_id;
-                getchangerecords.result.push(getrecord);
-                });
+        if ( (error == null) && result.hasOwnProperty('body') )
+        {
+            var getchangerecords = {
+                 result : [ ]
             }
-            log.info( '============== this.connector.get ==============', getchangerecords, error );         
-        }
-
-        callback (result,error);       
+            const parsedbody = JSON.parse(result.body);     
+            parsedbody.result.forEach( (element) => {
+            var getrecord = [];
+            getrecord ["change_ticket_number"] = element.number;
+            getrecord ["active"] = element.active;
+            getrecord ["priority"] = element.priority;
+            getrecord ["description"] = element.description;
+            getrecord ["work_start"] = element.work_start;
+            getrecord ["work_end"] = element.work_end;
+            getrecord ["change_ticket_key"] = element.sys_id;
+            getchangerecords.result.push(getrecord);
+            });
+         }
+         console.log( '============== this.connector.get ==============', getchangerecords );         
+         callback (result,error);       
     } )
 }
 
@@ -246,32 +238,39 @@ healthcheck(callback) {
      * Note how the object was instantiated in the constructor().
      * post() takes a callback function.
      */
-     this.connector.post( (result, error) => {
-        if (error){
-            callback (result,error);
+        this.connector.post( (result, error) => {
+        var postchangerecords = {
+            result : [ ]
         }
-        else {       
-            postchangerecords = {
-                result : [ ]
+        if (error == null & result.hasOwnProperty('body') ){
+            const parsedbody = JSON.parse(result.body);
+            const parsedrecord = parsedbody.result;
+            postchangerecords.result = { 
+                "change_ticket_number" : parsedrecord.number,
+                "active" : parsedrecord.active,
+                "priority" : parsedrecord.priority,
+                "description" : parsedrecord.description,
+                "work_start" : parsedrecord.work_start,
+                "work_end" : parsedrecord.work_end,
+                "change_ticket_key" : parsedrecord.sys_id
             }
-            let parsedresult = JSON.parse(result);
-            if ( parsedresult.hasOwnProperty('body') )
-            {
-                parsedrecord = parsedresult.body.result;
-                postchangerecords.result = { 
-                    "change_ticket_number" : parsedrecord.number,
-                    "active" : parsedrecord.active,
-                    "priority" : parsedrecord.priority,
-                    "description" : parsedrecord.description,
-                    "work_start" : parsedrecord.work_start,
-                    "work_end" : parsedrecord.work_end,
-                    "change_ticket_key" : parsedrecord.sys_id
-                }
-            }
-            callback( getchangerecords, error );
+            console.log( '============== this.connector.post ==============', postchangerecords );         
+            callback( postchangerecords, error );
         } 
      });
   }
 }
 
 module.exports = ServiceNowAdapter;
+
+const servicenowoptions = {
+  url: 'https://dev93964.service-now.com',
+  auth: {
+    username: "admin",
+    password: "ServiceNow@123"
+  },
+  serviceNowTable: "change_request"
+}
+
+const servicenowinstance = new ServiceNowAdapter ( 'servicenowinstance', servicenowoptions );
+servicenowinstance.connect();
