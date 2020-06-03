@@ -103,46 +103,46 @@ class ServiceNowAdapter extends EventEmitter {
  *   that handles the response.
  */
 healthcheck(callback) {
- this.postRecord((result, error) => {
-   /**
-    * For this lab, complete the if else conditional
-    * statements that check if an error exists
-    * or the instance was hibernating. You must write
-    * the blocks for each branch.
-    */
-   if (error) {
-     /**
-      * Write this block.
-      * If an error was returned, we need to emit OFFLINE.
-      * Log the returned error using IAP's global log object
-      * at an error severity. In the log message, record
-      * this.id so an administrator will know which ServiceNow
-      * adapter instance wrote the log message in case more
-      * than one instance is configured.
-      * If an optional IAP callback function was passed to
-      * healthcheck(), execute it passing the error seen as an argument
-      * for the callback's errorMessage parameter.
-      */
-      this.emitOffline();
-      console.log( '============== Connect/failed ==============', this.id );
-   } else {
-     /**
-      * Write this block.
-      * If no runtime problems were detected, emit ONLINE.
-      * Log an appropriate message using IAP's global log object
-      * at a debug severity.
-      * If an optional IAP callback function was passed to
-      * healthcheck(), execute it passing this function's result
-      * parameter as an argument for the callback function's
-      * responseData parameter.
-      */
-      this.emitOnline();
-      console.log( '============== Connect/passed ==============', this.id );
-   }
+    this.getRecord((result, error) => {
+    /**
+        * For this lab, complete the if else conditional
+        * statements that check if an error exists
+        * or the instance was hibernating. You must write
+        * the blocks for each branch.
+        */
+    if (error) {
+        /**
+        * Write this block.
+        * If an error was returned, we need to emit OFFLINE.
+        * Log the returned error using IAP's global log object
+        * at an error severity. In the log message, record
+        * this.id so an administrator will know which ServiceNow
+        * adapter instance wrote the log message in case more
+        * than one instance is configured.
+        * If an optional IAP callback function was passed to
+        * healthcheck(), execute it passing the error seen as an argument
+        * for the callback's errorMessage parameter.
+        */
+        this.emitOffline();
+        log.error( '============== Connect/failed ==============', this.id );
+    } else {
+        /**
+        * Write this block.
+        * If no runtime problems were detected, emit ONLINE.
+        * Log an appropriate message using IAP's global log object
+        * at a debug severity.
+        * If an optional IAP callback function was passed to
+        * healthcheck(), execute it passing this function's result
+        * parameter as an argument for the callback function's
+        * responseData parameter.
+        */
+        this.emitOnline();
+        log.info( '============== Connect/passed ==============', this.id );
+    }
+    }) 
    if (callback){   
-//        callback( getchangerecords, error ); 
+        callback( result, error ); 
    }
- });
 }
 
   /**
@@ -154,7 +154,7 @@ healthcheck(callback) {
    */
   emitOffline() {
     this.emitStatus('OFFLINE');
-    console.log('ServiceNow: Instance is unavailable.');
+    log.warn('ServiceNow: Instance is unavailable.');
   }
 
   /**
@@ -166,7 +166,7 @@ healthcheck(callback) {
    */
   emitOnline() {
     this.emitStatus('ONLINE');
-    console.log('ServiceNow: Instance is available.');
+    log.info('ServiceNow: Instance is available.');
   }
 
   /**
@@ -198,15 +198,21 @@ healthcheck(callback) {
      * Note how the object was instantiated in the constructor().
      * get() takes a callback function.
      */
-    this.connector.get ( (result,error) =>{
+        this.connector.get ( (result,error) =>{
+        var getchangerecords = {
+                result : [ ]
+        }
+
         if ( (error == null) && result.hasOwnProperty('body') )
         {
-            var getchangerecords = {
-                 result : [ ]
-            }
+            if ( this.connector.isHibernating(result) ){
+                this.emitOffline();
+                error = 'Service now instance is hibernating' + this.id;
+                log.error(error);                
+            }else {
             const parsedbody = JSON.parse(result.body);     
             parsedbody.result.forEach( (element) => {
-            var getrecord = [];
+            var getrecord = {};
             getrecord ["change_ticket_number"] = element.number;
             getrecord ["active"] = element.active;
             getrecord ["priority"] = element.priority;
@@ -216,9 +222,10 @@ healthcheck(callback) {
             getrecord ["change_ticket_key"] = element.sys_id;
             getchangerecords.result.push(getrecord);
             });
-         }
-         console.log( '============== this.connector.get ==============', getchangerecords );         
-         callback (result,error);       
+          }
+       }
+       log.info( '============== this.connector.get ==============', getchangerecords, error );         
+       callback (getchangerecords,error);       
     } )
 }
 
@@ -243,6 +250,11 @@ healthcheck(callback) {
             result : [ ]
         }
         if (error == null & result.hasOwnProperty('body') ){
+            if ( this.connector.isHibernating(result) ){
+                this.emitOffline();
+                error = 'Service now instance is hibernating' + this.id;
+                log.error(error);                
+            }else {
             const parsedbody = JSON.parse(result.body);
             const parsedrecord = parsedbody.result;
             postchangerecords.result = { 
@@ -254,7 +266,8 @@ healthcheck(callback) {
                 "work_end" : parsedrecord.work_end,
                 "change_ticket_key" : parsedrecord.sys_id
             }
-            console.log( '============== this.connector.post ==============', postchangerecords );         
+            }
+            log.info( '============== this.connector.post ==============', postchangerecords, error );         
             callback( postchangerecords, error );
         } 
      });
@@ -263,14 +276,14 @@ healthcheck(callback) {
 
 module.exports = ServiceNowAdapter;
 
-const servicenowoptions = {
-  url: 'https://dev93964.service-now.com',
-  auth: {
-    username: "admin",
-    password: "ServiceNow@123"
-  },
-  serviceNowTable: "change_request"
-}
+// const servicenowoptions = {
+//   url: 'https://dev93964.service-now.com',
+//   auth: {
+//     username: "admin",
+//     password: "ServiceNow@123"
+//   },
+//   serviceNowTable: "change_request"
+// }
 
-const servicenowinstance = new ServiceNowAdapter ( 'servicenowinstance', servicenowoptions );
-servicenowinstance.connect();
+// const servicenowinstance = new ServiceNowAdapter ( 'servicenowinstance', servicenowoptions );
+// servicenowinstance.connect();
