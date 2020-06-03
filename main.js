@@ -124,7 +124,7 @@ class ServiceNowAdapter extends EventEmitter {
         * for the callback's errorMessage parameter.
         */
         this.emitOffline();
-//        log.error( '============== Connect/failed ==============', this.id );
+        log.error( '============== Connect/failed ==============', this.id );
     } else {
         /**
         * Write this block.
@@ -137,7 +137,7 @@ class ServiceNowAdapter extends EventEmitter {
         * responseData parameter.
         */
         this.emitOnline();
-//       log.info( '============== Connect/passed ==============', this.id );
+       log.info( '============== Connect/passed ==============', this.id );
     }
     }) 
    if (callback){   
@@ -154,7 +154,7 @@ class ServiceNowAdapter extends EventEmitter {
    */
   emitOffline() {
     this.emitStatus('OFFLINE');
-//    log.warn('ServiceNow: Instance is unavailable.');
+    log.warn('ServiceNow: Instance is unavailable.');
   }
 
   /**
@@ -166,7 +166,7 @@ class ServiceNowAdapter extends EventEmitter {
    */
   emitOnline() {
     this.emitStatus('ONLINE');
-//    log.info('ServiceNow: Instance is available.');
+    log.info('ServiceNow: Instance is available.');
   }
 
   /**
@@ -273,14 +273,14 @@ class ServiceNowAdapter extends EventEmitter {
 
 module.exports = ServiceNowAdapter;
 
-const servicenowoptions = {
-  url: 'https://dev93964.service-now.com',
-  auth: {
-    username: "admin",
-    password: "ServiceNow@123"
-  },
-  serviceNowTable: "change_request"
-}
+// const servicenowoptions = {
+//   url: 'https://dev93964.service-now.com',
+//   auth: {
+//     username: "admin",
+//     password: "ServiceNow@123"
+//   },
+//   serviceNowTable: "change_request"
+// }
 
-const servicenowinstance = new ServiceNowAdapter ( 'servicenowinstance', servicenowoptions );
-servicenowinstance.connect();
+// const servicenowinstance = new ServiceNowAdapter ( 'servicenowinstance', servicenowoptions );
+// servicenowinstance.connect();
