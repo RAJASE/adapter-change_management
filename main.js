@@ -202,7 +202,7 @@ class ServiceNowAdapter extends EventEmitter {
         var getchangerecords = {
                 result : [ ]
         }
-        if ( error == null )
+        if ( ( error == null ) && result.hasOwnProperty('body') )
         {
             const parsedbody = JSON.parse(result.body);     
             parsedbody.result.forEach( (element) => {
@@ -247,7 +247,8 @@ class ServiceNowAdapter extends EventEmitter {
         var postchangerecords = {
             result : [ ]
         }
-        if ( error == null  ){
+        if ( ( error == null ) && result.hasOwnProperty('body') ) 
+        {
             const parsedbody = JSON.parse(result.body);
             const parsedrecord = parsedbody.result;
             postchangerecords.result = { 

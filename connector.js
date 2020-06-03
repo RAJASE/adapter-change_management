@@ -113,8 +113,6 @@ constructUri(serviceNowTable, query = null) {
       processedError = 'Bad response code';
     } else if (this.isHibernating(response)) {
       processedError = 'Service Now instance hibernating';
-    } else if (!response.hasOwnProperty('body')) {
-      processedError = 'Response without msg body';
     } else {
       processedResults = response;
     }
