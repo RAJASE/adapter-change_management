@@ -76,7 +76,6 @@ constructUri(serviceNowTable, query = null) {
    return response.body.includes('Instance Hibernating page')
    && response.body.includes('<html>')
    && response.statusCode === 200;
-
 }
 
 
