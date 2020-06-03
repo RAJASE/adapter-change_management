@@ -124,7 +124,7 @@ class ServiceNowAdapter extends EventEmitter {
         * for the callback's errorMessage parameter.
         */
         this.emitOffline();
-        log.error( '============== Connect/failed ==============', this.id );
+//        log.error( '============== Connect/failed ==============', this.id );
     } else {
         /**
         * Write this block.
@@ -137,7 +137,7 @@ class ServiceNowAdapter extends EventEmitter {
         * responseData parameter.
         */
         this.emitOnline();
-       log.info( '============== Connect/passed ==============', this.id );
+//       log.info( '============== Connect/passed ==============', this.id );
     }
     }) 
    if (callback){   
@@ -154,7 +154,7 @@ class ServiceNowAdapter extends EventEmitter {
    */
   emitOffline() {
     this.emitStatus('OFFLINE');
-    log.warn('ServiceNow: Instance is unavailable.');
+//    log.warn('ServiceNow: Instance is unavailable.');
   }
 
   /**
@@ -166,7 +166,7 @@ class ServiceNowAdapter extends EventEmitter {
    */
   emitOnline() {
     this.emitStatus('ONLINE');
-    log.info('ServiceNow: Instance is available.');
+//    log.info('ServiceNow: Instance is available.');
   }
 
   /**
@@ -199,9 +199,7 @@ class ServiceNowAdapter extends EventEmitter {
      * get() takes a callback function.
      */
         this.connector.get ( (result,error) =>{
-        var getchangerecords = {
-                result : [ ]
-        }
+        var getchangerecords = [];
         if ( ( error == null ) && result.hasOwnProperty('body') )
         {
             const parsedbody = JSON.parse(result.body);     
@@ -214,7 +212,7 @@ class ServiceNowAdapter extends EventEmitter {
             getrecord ["work_start"] = element.work_start;
             getrecord ["work_end"] = element.work_end;
             getrecord ["change_ticket_key"] = element.sys_id;
-            getchangerecords.result.push(getrecord);
+            getchangerecords.push(getrecord);
             });
        }else {
             error = this.id + ' : ' + error;
@@ -244,14 +242,15 @@ class ServiceNowAdapter extends EventEmitter {
      * post() takes a callback function.
      */
         this.connector.post( (result, error) => {
+        
         var postchangerecords = {
-            result : [ ]
+            
         }
         if ( ( error == null ) && result.hasOwnProperty('body') ) 
         {
             const parsedbody = JSON.parse(result.body);
             const parsedrecord = parsedbody.result;
-            postchangerecords.result = { 
+            postchangerecords = { 
                 "change_ticket_number" : parsedrecord.number,
                 "active" : parsedrecord.active,
                 "priority" : parsedrecord.priority,
@@ -274,14 +273,14 @@ class ServiceNowAdapter extends EventEmitter {
 
 module.exports = ServiceNowAdapter;
 
-// const servicenowoptions = {
-//   url: 'https://dev93964.service-now.com',
-//   auth: {
-//     username: "admin",
-//     password: "ServiceNow@123"
-//   },
-//   serviceNowTable: "change_request"
-// }
+const servicenowoptions = {
+  url: 'https://dev93964.service-now.com',
+  auth: {
+    username: "admin",
+    password: "ServiceNow@123"
+  },
+  serviceNowTable: "change_request"
+}
 
-// const servicenowinstance = new ServiceNowAdapter ( 'servicenowinstance', servicenowoptions );
-// servicenowinstance.connect();
+const servicenowinstance = new ServiceNowAdapter ( 'servicenowinstance', servicenowoptions );
+servicenowinstance.connect();
