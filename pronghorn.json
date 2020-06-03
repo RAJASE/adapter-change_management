@@ -36,12 +36,12 @@
     {
     "name": "postRecord",
     "summary": "Post Change Tickets",
-    "description": "Post ServiceNow change management ticket.",
+    "description": "Post the ServiceNow change management ticket.",
     "input": [],
     "output": {
         "name": "changeTickets",
         "type": "object",
-        "description": "change management ticket document.",
+        "description": "Element is a change management ticket document.",
         "schema": {
         "type": "object",
         "items": {

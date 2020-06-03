@@ -85,7 +85,7 @@ class ServiceNowAdapter extends EventEmitter {
    *   There is no need for parameters because all connection details
    *   were passed to the object's constructor and assigned to object property this.props.
    */
-  connect() {
+    connect() {
     // As a best practice, Itential recommends isolating the health check action
     // in its own method.
     console.log( '============== Connect ==============' );
@@ -102,7 +102,7 @@ class ServiceNowAdapter extends EventEmitter {
  * @param {ServiceNowAdapter~requestCallback} [callback] - The optional callback
  *   that handles the response.
  */
-healthcheck(callback) {
+    healthcheck(callback) {
     this.getRecord((result, error) => {
     /**
         * For this lab, complete the if else conditional
@@ -207,7 +207,7 @@ healthcheck(callback) {
         {
             if ( this.connector.isHibernating(result) ){
                 this.emitOffline();
-                error = 'Service now instance is hibernating' + this.id;
+                error = 'Service now instance is hibernating ...' + this.id;
                 log.error(error);                
             }else {
             const parsedbody = JSON.parse(result.body);     
@@ -249,10 +249,10 @@ healthcheck(callback) {
         var postchangerecords = {
             result : [ ]
         }
-        if (error == null & result.hasOwnProperty('body') ){
+        if ((error == null) && result.hasOwnProperty('body') ){
             if ( this.connector.isHibernating(result) ){
                 this.emitOffline();
-                error = 'Service now instance is hibernating' + this.id;
+                error = 'Service now instance is hibernating ...' + this.id;
                 log.error(error);                
             }else {
             const parsedbody = JSON.parse(result.body);
@@ -270,7 +270,7 @@ healthcheck(callback) {
             log.info( '============== this.connector.post ==============', postchangerecords, error );         
             callback( postchangerecords, error );
         } 
-     });
+     })
   }
 }
 
