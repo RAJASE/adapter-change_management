@@ -73,9 +73,10 @@ constructUri(serviceNowTable, query = null) {
  * @return {boolean} Returns true if instance is hibernating. Otherwise returns false.
  */
  isHibernating(response) {
-  return response.body.includes('Instance Hibernating page')
-  && response.body.includes('<html>')
-  && response.statusCode === 200;
+   return response.body.includes('Instance Hibernating page')
+   && response.body.includes('<html>')
+   && response.statusCode === 200;
+
 }
 
 
@@ -108,14 +109,13 @@ constructUri(serviceNowTable, query = null) {
 
    
     if (error) {
-      console.error('Error present.');
-      processedError = error;
+      processedError = 'Error present.';
     } else if (!validResponseRegex.test(response.statusCode)) {
-      console.error('Bad response code.');
-      processedError = response;
+      processedError = 'Bad response code';
     } else if (this.isHibernating(response)) {
-      processedError = 'Service Now instance is hibernating';
-      console.error(processedError);
+      processedError = 'Service Now instance hibernating';
+    } else if (!response.hasOwnProperty('body')) {
+      processedError = 'Response without msg body';
     } else {
       processedResults = response;
     }

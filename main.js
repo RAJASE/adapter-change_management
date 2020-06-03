@@ -137,7 +137,7 @@ class ServiceNowAdapter extends EventEmitter {
         * responseData parameter.
         */
         this.emitOnline();
-        log.info( '============== Connect/passed ==============', this.id );
+       log.info( '============== Connect/passed ==============', this.id );
     }
     }) 
    if (callback){   
@@ -202,14 +202,8 @@ class ServiceNowAdapter extends EventEmitter {
         var getchangerecords = {
                 result : [ ]
         }
-
-        if ( (error == null) && result.hasOwnProperty('body') )
+        if ( error == null )
         {
-            if ( this.connector.isHibernating(result) ){
-                this.emitOffline();
-                error = 'Service now instance is hibernating ...' + this.id;
-                log.error(error);                
-            }else {
             const parsedbody = JSON.parse(result.body);     
             parsedbody.result.forEach( (element) => {
             var getrecord = {};
@@ -222,10 +216,14 @@ class ServiceNowAdapter extends EventEmitter {
             getrecord ["change_ticket_key"] = element.sys_id;
             getchangerecords.result.push(getrecord);
             });
-          }
-       }
-       log.info( '============== this.connector.get ==============', getchangerecords, error );         
-       callback (getchangerecords,error);       
+       }else {
+            error = this.id + ' : ' + error;
+            if ( error == 'Service Now instance hibernating' ) {
+                this.emitOffline();
+            }
+        }
+        console.log( '============== this.connector.get ==============', getchangerecords, error );         
+        callback (getchangerecords,error);       
     } )
 }
 
@@ -249,12 +247,7 @@ class ServiceNowAdapter extends EventEmitter {
         var postchangerecords = {
             result : [ ]
         }
-        if ((error == null) && result.hasOwnProperty('body') ){
-            if ( this.connector.isHibernating(result) ){
-                this.emitOffline();
-                error = 'Service now instance is hibernating ...' + this.id;
-                log.error(error);                
-            }else {
+        if ( error == null  ){
             const parsedbody = JSON.parse(result.body);
             const parsedrecord = parsedbody.result;
             postchangerecords.result = { 
@@ -266,10 +259,14 @@ class ServiceNowAdapter extends EventEmitter {
                 "work_end" : parsedrecord.work_end,
                 "change_ticket_key" : parsedrecord.sys_id
             }
+        }else {
+            error = this.id + ' : ' + error;
+            if ( error == 'Service Now instance hibernating' ) {
+                this.emitOffline();
             }
-            log.info( '============== this.connector.post ==============', postchangerecords, error );         
-            callback( postchangerecords, error );
-        } 
+        }
+        console.log( '============== this.connector.post ==============', postchangerecords, error );         
+        callback( postchangerecords, error );
      })
   }
 }
